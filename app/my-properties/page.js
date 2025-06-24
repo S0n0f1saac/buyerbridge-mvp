@@ -37,6 +37,15 @@ export default function MyPropertiesPage() {
 
   if (loading) return <p>Loading your listings...</p>
 
+  const handleDelete = async (id) => {
+  const { error } = await supabase.from('properties').delete().eq('id', id)
+  if (!error) {
+    setProperties(properties.filter((p) => p.id !== id))
+  } else {
+    console.error('Delete error:', error.message)
+  }
+}
+
   return (
     <div style={{ padding: '2rem' }}>
       <h1>My Properties</h1>
@@ -46,9 +55,10 @@ export default function MyPropertiesPage() {
         <ul>
           {properties.map((property) => (
             <li key={property.id} style={{ marginBottom: '1rem' }}>
-              <strong>{property.title}</strong><br />
-              {property.description}<br />
-              Price: ${property.price.toLocaleString()}
+                  <strong>{property.title}</strong><br />
+                  {property.description}<br />
+                  <button onClick={() => handleDelete(property.id)}>Delete</button>
+                  <button onClick={() => router.push(`/edit-property/${property.id}`)}>Edit</button>
             </li>
           ))}
         </ul>
