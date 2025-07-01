@@ -13,6 +13,11 @@ export default function PropertyDetailPage() {
   const [message, setMessage] = useState('')
   const [formStatus, setFormStatus] = useState('')
 
+  const [offerEmail, setOfferEmail] = useState('')
+  const [offerPrice, setOfferPrice] = useState('')
+  const [offerMessage, setOfferMessage] = useState('')
+  const [offerStatus, setOfferStatus] = useState('')
+
   useEffect(() => {
     const fetchProperty = async () => {
       const { data, error } = await supabase
@@ -47,6 +52,27 @@ export default function PropertyDetailPage() {
       setFormStatus('Tour request submitted! ✅')
       setEmail('')
       setMessage('')
+    }
+  }
+
+  const handleOfferSubmit = async (e) => {
+    e.preventDefault()
+
+    const { error } = await supabase.from('offers').insert([{
+      property_id: id,
+      email: offerEmail,
+      price: Number(offerPrice),
+      message: offerMessage
+    }])
+
+    if (error) {
+      console.error("Offer submission error:", error.message)
+      setOfferStatus('Something went wrong. Please try again.')
+    } else {
+      setOfferStatus('Offer submitted! ✅')
+      setOfferEmail('')
+      setOfferPrice('')
+      setOfferMessage('')
     }
   }
 
@@ -85,8 +111,36 @@ export default function PropertyDetailPage() {
         <button type="submit">Request Tour</button>
         <p>{formStatus}</p>
       </form>
+
+      <hr style={{ margin: '2rem 0' }} />
+      <h2>Send an Offer</h2>
+      <form onSubmit={handleOfferSubmit}>
+        <input
+          type="email"
+          placeholder="Your email"
+          value={offerEmail}
+          onChange={(e) => setOfferEmail(e.target.value)}
+          required
+        /><br /><br />
+        <input
+          type="number"
+          placeholder="Offer price"
+          value={offerPrice}
+          onChange={(e) => setOfferPrice(e.target.value)}
+          required
+        /><br /><br />
+        <textarea
+          placeholder="Message (optional)"
+          value={offerMessage}
+          onChange={(e) => setOfferMessage(e.target.value)}
+        /><br /><br />
+        <button type="submit">Submit Offer</button>
+        <p>{offerStatus}</p>
+      </form>
     </div>
   )
 }
+
+
 
 
