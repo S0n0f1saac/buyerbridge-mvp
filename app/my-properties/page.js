@@ -54,7 +54,14 @@ export default function MyPropertiesPage() {
       ) : (
         <ul>
           {properties.map((property) => (
-            <li key={property.id} style={{ marginBottom: '1rem' }}>
+            <li key={property.id} style={{ marginBottom: '2rem' }}>
+              {property.image_url && (
+                <img
+                  src={property.image_url}
+                  alt={property.title}
+                  style={{ maxWidth: '300px', height: 'auto', display: 'block', marginBottom: '1rem' }}
+                />
+              )}
                   <strong>{property.title}</strong><br />
                   {property.description}<br />
                   <button onClick={() => handleDelete(property.id)}>Delete</button>

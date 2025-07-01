@@ -1,41 +1,74 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { v4 as uuidv4 } from 'uuid'
 
 export default function AddPropertyPage() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
+  const [imageFile, setImageFile] = useState(null)
   const [message, setMessage] = useState('')
   const router = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    // Get logged-in user
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: userData, error: userError } = await supabase.auth.getUser()
+    const user = userData?.user
+
+    console.log("Fetched user:", user)
     if (!user) {
       setMessage('You must be logged in.')
       return
     }
 
-    const { error } = await supabase.from('properties').insert([{
+    let image_url = null
+
+    if (imageFile) {
+      const filename = `${uuidv4()}-${imageFile.name}`
+      console.log("Uploading image:", filename)
+
+      const { data, error } = await supabase
+        .storage
+        .from('property-images')
+        .upload(filename, imageFile)
+
+      if (error) {
+        setMessage(`Image upload failed: ${error.message}`)
+        return
+      }
+
+      const { data: urlData } = supabase
+        .storage
+        .from('property-images')
+        .getPublicUrl(filename)
+
+      image_url = urlData.publicUrl
+      console.log("Image URL generated:", image_url)
+    }
+
+    const payload = {
       title,
       description,
       price: Number(price),
-      user_id: user.id
-    }])
+      user_id: user.id,
+      image_url,
+    }
 
-    if (error) {
-      setMessage(`Error: ${error.message}`)
+    console.log("Inserting property:", payload)
+
+    const { error: insertError } = await supabase.from('properties').insert([payload])
+
+    if (insertError) {
+      console.error("INSERT ERROR:", insertError)
+      setMessage(`Error: ${insertError.message}`)
     } else {
+      console.log("Insert success ✅")
       setMessage('Property added!')
-      setTitle('')
-      setDescription('')
-      setPrice('')
-      router.push('/dashboard')  // or wherever you want to go next
+      router.push('/my-properties')
     }
   }
 
@@ -66,9 +99,16 @@ export default function AddPropertyPage() {
           required
         /><br /><br />
 
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setImageFile(e.target.files[0])}
+        /><br /><br />
+
         <button type="submit">Add Property</button>
       </form>
       <p>{message}</p>
     </div>
   )
 }
+
