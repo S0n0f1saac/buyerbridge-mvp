@@ -83,7 +83,10 @@ export default function BrowsePage() {
                   style={{ width: '100%', height: '200px', objectFit: 'cover' }}
                 />
               )}
-              <h3>{property.title}</h3>
+              <h3 style={{ cursor: 'pointer', color: 'blue' }}
+                onClick={() => window.location.href = `/property/${property.id}`}>
+               {property.title}
+                </h3>
               <p>{property.description}</p>
               <p><strong>${property.price.toLocaleString()}</strong></p>
             </div>
