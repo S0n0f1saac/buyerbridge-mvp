@@ -1,22 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 export default function PropertyDetailPage() {
-  const params = useParams()
-  const id = params.id
+  const { id } = useParams()
   const [property, setProperty] = useState(null)
-
-  const [email, setEmail] = useState('')
-  const [message, setMessage] = useState('')
-  const [formStatus, setFormStatus] = useState('')
-
-  const [offerEmail, setOfferEmail] = useState('')
-  const [offerPrice, setOfferPrice] = useState('')
-  const [offerMessage, setOfferMessage] = useState('')
-  const [offerStatus, setOfferStatus] = useState('')
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -26,120 +16,107 @@ export default function PropertyDetailPage() {
         .eq('id', id)
         .single()
 
-      if (error) {
-        console.error('Error fetching property:', error.message)
-      } else {
-        setProperty(data)
-      }
+      if (error) console.error(error)
+      else setProperty(data)
     }
 
     fetchProperty()
   }, [id])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    const { error } = await supabase.from('tour_requests').insert([{
-      email,
-      message,
-      property_id: id,
-    }])
-
-    if (error) {
-      console.error("Tour request error:", error.message)
-      setFormStatus('Something went wrong. Please try again.')
-    } else {
-      setFormStatus('Tour request submitted! ✅')
-      setEmail('')
-      setMessage('')
-    }
-  }
-
-  const handleOfferSubmit = async (e) => {
-    e.preventDefault()
-
-    const { error } = await supabase.from('offers').insert([{
-      property_id: id,
-      email: offerEmail,
-      price: Number(offerPrice),
-      message: offerMessage
-    }])
-
-    if (error) {
-      console.error("Offer submission error:", error.message)
-      setOfferStatus('Something went wrong. Please try again.')
-    } else {
-      setOfferStatus('Offer submitted! ✅')
-      setOfferEmail('')
-      setOfferPrice('')
-      setOfferMessage('')
-    }
-  }
-
-  if (!property) return <p style={{ padding: '2rem' }}>Loading...</p>
+  if (!property) return <p className="p-6">Loading...</p>
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>{property.title}</h1>
+    <div className="px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32 py-6 text-black">
 
-      {property.image_url && (
-        <img
-          src={property.image_url}
-          alt={property.title}
-          style={{ width: '100%', maxWidth: '600px', height: 'auto' }}
-        />
-      )}
+      {/* Hero Image with Outside Arrows */}
+      <div className="flex items-center justify-center gap-6 mb-4">
+        <button className="text-sm px-3 py-2 border border-black rounded-full bg-white hover:bg-black hover:text-white transition">
+          ◀
+        </button>
+        <div className="w-full max-w-6xl">
+          <img
+            src={property.image_url}
+            alt="Main"
+            className="w-full h-[600px] object-cover border"
+          />
+        </div>
+        <button className="text-sm px-3 py-2 border border-black rounded-full bg-white hover:bg-black hover:text-white transition">
+          ▶
+        </button>
+      </div>
 
-      <p>{property.description}</p>
-      <p><strong>Price:</strong> ${property.price.toLocaleString()}</p>
+      {/* Image Preview Row */}
+      <div className="flex gap-4 justify-center mb-6">
+        {[1, 2, 3].map((i) => (
+          <img
+            key={i}
+            src={property.image_url}
+            alt={`Preview ${i}`}
+            className="w-24 h-16 object-cover border cursor-pointer"
+          />
+        ))}
+      </div>
 
-      <hr style={{ margin: '2rem 0' }} />
-      <h2>Schedule a Tour</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        /><br /><br />
-        <textarea
-          placeholder="Optional message"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-        /><br /><br />
-        <button type="submit">Request Tour</button>
-        <p>{formStatus}</p>
-      </form>
+      {/* Main Info Section */}
+      <div className="mb-4 text-lg">
+        <h2 className="text-3xl font-bold mb-2">Price: ${property.price?.toLocaleString()}</h2>
+        <p className="mb-1">
+          {property.bedrooms || '?'} Beds • {property.bathrooms || '?'} Baths • {property.sqft || '?'} Sqft • {property.lot_size || '?'} Acres
+        </p>
+        <p className="mb-1">{property.address || 'Address not listed'}</p>
+        <p className="mb-1">School District: {property.school_district || 'N/A'}</p>
+      </div>
 
-      <hr style={{ margin: '2rem 0' }} />
-      <h2>Send an Offer</h2>
-      <form onSubmit={handleOfferSubmit}>
-        <input
-          type="email"
-          placeholder="Your email"
-          value={offerEmail}
-          onChange={(e) => setOfferEmail(e.target.value)}
-          required
-        /><br /><br />
-        <input
-          type="number"
-          placeholder="Offer price"
-          value={offerPrice}
-          onChange={(e) => setOfferPrice(e.target.value)}
-          required
-        /><br /><br />
-        <textarea
-          placeholder="Message (optional)"
-          value={offerMessage}
-          onChange={(e) => setOfferMessage(e.target.value)}
-        /><br /><br />
-        <button type="submit">Submit Offer</button>
-        <p>{offerStatus}</p>
-      </form>
+      {/* Spec Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-base font-medium my-6">
+        <div>Year Built: {property.year_built || '?'}</div>
+        <div>Price / Sqft: ${property.price_per_sqft || '?'}</div>
+        <div>Days on BuyerBridge: {property.days_listed || '?'}</div>
+        <div>Garage: {property.garage_size || '?'}</div>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex justify-center gap-6 mb-6 text-base">
+        <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition">Request Tour</button>
+        <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition">Virtual Tour</button>
+        <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition">Send Offer</button>
+      </div>
+
+      {/* Page Break */}
+      <hr className="my-6 border-black" />
+
+      {/* Affordability Section */}
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold text-center mb-4">Affordability Details</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-base">
+          <div>Est. $$/Month</div>
+          <div>Utility Cost</div>
+          <div>HOA Cost</div>
+          <div>Yearly Tax</div>
+          <div>Insurance</div>
+          <div>Water</div>
+          <div>Electric</div>
+          <div>Gas</div>
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-2">About this home</h3>
+        <p>{property.description || 'No description available.'}</p>
+      </div>
+
+      {/* Page Break */}
+      <hr className="my-6 border-black" />
+
+      {/* Map Placeholder */}
+      <div className="h-64 bg-gray-100 border flex items-center justify-center text-base text-gray-600">
+        MAP Placeholder — location of property will go here
+      </div>
     </div>
   )
 }
+
 
 
 
