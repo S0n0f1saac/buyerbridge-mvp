@@ -14,10 +14,7 @@ export default function RootLayout({ children }) {
           {/* Left nav links */}
           <div className="flex gap-6">
             <a href="/browse" className="hover:underline">Browse</a>
-            <a href="/add-property" className="hover:underline">Add Property</a>
-            <a href="/my-properties" className="hover:underline">My Properties</a>
-            <a href="/seller/tour-requests" className="hover:underline">Tour Requests</a>
-            <a href="/seller/offers" className="hover:underline">Offers</a>
+            <a href="/my-dashboard" className="hover:underline">My Dashboard</a>
           </div>
 
           {/* Center logo */}
