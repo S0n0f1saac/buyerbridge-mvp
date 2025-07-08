@@ -1,15 +1,20 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 
 export default function PropertyDetailPage() {
   const { id } = useParams()
+  const router = useRouter()
   const [property, setProperty] = useState(null)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
-    const fetchProperty = async () => {
+    const fetchUserAndProperty = async () => {
+      const { data: userData } = await supabase.auth.getUser()
+      setUser(userData?.user || null)
+
       const { data, error } = await supabase
         .from('properties')
         .select('*')
@@ -20,7 +25,7 @@ export default function PropertyDetailPage() {
       else setProperty(data)
     }
 
-    fetchProperty()
+    fetchUserAndProperty()
   }, [id])
 
   if (!property) return <p className="p-6">Loading...</p>
@@ -28,9 +33,9 @@ export default function PropertyDetailPage() {
   return (
     <div className="px-4 sm:px-8 md:px-16 lg:px-24 xl:px-32 py-6 text-black">
 
-      {/* Hero Image with Outside Arrows */}
-      <div className="flex items-center justify-center gap-6 mb-4">
-        <button className="text-sm px-3 py-2 border border-black rounded-full bg-white hover:bg-black hover:text-white transition">
+      {/* Hero Image with Subtle Arrows */}
+      <div className="flex items-center justify-center gap-4 mb-4">
+        <button className="text-xs px-2 py-1 border border-black rounded-full bg-white hover:bg-black hover:text-white transition">
           ◀
         </button>
         <div className="w-full max-w-6xl">
@@ -40,7 +45,7 @@ export default function PropertyDetailPage() {
             className="w-full h-[600px] object-cover border"
           />
         </div>
-        <button className="text-sm px-3 py-2 border border-black rounded-full bg-white hover:bg-black hover:text-white transition">
+        <button className="text-xs px-2 py-1 border border-black rounded-full bg-white hover:bg-black hover:text-white transition">
           ▶
         </button>
       </div>
@@ -75,14 +80,33 @@ export default function PropertyDetailPage() {
         <div>Garage: {property.garage_size || '?'}</div>
       </div>
 
-      {/* Buttons */}
-      <div className="flex justify-center gap-6 mb-6 text-base">
-        <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition">Request Tour</button>
-        <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition">Virtual Tour</button>
-        <button className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition">Send Offer</button>
-      </div>
+      {/* Auth-Protected Buttons */}
+      {user ? (
+        <div className="flex justify-center gap-6 mb-6 text-base">
+          <button
+            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition"
+            onClick={() => router.push(`/request-tour?property_id=${id}`)}
+          >
+            Request Tour
+          </button>
+          <button
+            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition"
+          >
+            Virtual Tour
+          </button>
+          <button
+            className="px-6 py-3 border border-black rounded-full hover:bg-black hover:text-white transition"
+            onClick={() => router.push(`/make-offer?property_id=${id}`)}
+          >
+            Send Offer
+          </button>
+        </div>
+      ) : (
+        <p className="text-center mb-6 text-sm italic">
+          Please <a href="/login" className="underline">log in</a> to request a tour or make an offer.
+        </p>
+      )}
 
-      {/* Page Break */}
       <hr className="my-6 border-black" />
 
       {/* Affordability Section */}
@@ -106,7 +130,6 @@ export default function PropertyDetailPage() {
         <p>{property.description || 'No description available.'}</p>
       </div>
 
-      {/* Page Break */}
       <hr className="my-6 border-black" />
 
       {/* Map Placeholder */}
