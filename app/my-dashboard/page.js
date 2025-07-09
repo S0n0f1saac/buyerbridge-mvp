@@ -73,12 +73,27 @@ export default function MyDashboard() {
                 <p className="font-semibold">{p.title}</p>
                 <p className="text-sm">{p.address}</p>
               </div>
-              <a
-                href={`/edit-property/${p.id}`}
-                className="text-sm px-4 py-1 border border-black rounded hover:bg-black hover:text-white transition"
-              >
-                Edit
-              </a>
+              <div className="flex gap-3">
+                <a
+                  href={`/edit-property/${p.id}`}
+                  className="text-sm px-4 py-1 border border-black rounded hover:bg-black hover:text-white transition"
+                >
+                  Edit
+                </a>
+                <button
+                  onClick={async () => {
+                    const confirmed = confirm('Are you sure you want to delete this property?')
+                    if (confirmed) {
+                      const { error } = await supabase.from('properties').delete().eq('id', p.id)
+                      if (!error) location.reload()
+                      else alert('Delete failed.')
+                    }
+                  }}
+                  className="text-sm px-4 py-1 border border-black rounded hover:bg-black hover:text-white transition"
+                >
+                  Delete
+                </button>
+              </div>
             </li>
           ))}
         </ul>
