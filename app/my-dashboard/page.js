@@ -53,17 +53,35 @@ export default function MyDashboard() {
       {/* My Properties */}
       <section className="mb-10">
         <h2 className="text-xl font-semibold mb-4">My Properties</h2>
+
+        <div className="mb-4">
+          <a
+            href="/add-property"
+            className="inline-block px-6 py-2 border border-black rounded-full hover:bg-black hover:text-white transition"
+          >
+            + Add New Property
+          </a>
+        </div>
+
         {properties.length === 0 ? (
           <p className="text-sm">You haven't listed any properties yet.</p>
         ) : (
-          <ul className="space-y-3">
-            {properties.map((p) => (
-              <li key={p.id} className="border p-4 rounded">
+        <ul className="space-y-3">
+          {properties.map((p) => (
+            <li key={p.id} className="border p-4 rounded flex justify-between items-center">
+              <div>
                 <p className="font-semibold">{p.title}</p>
                 <p className="text-sm">{p.address}</p>
-              </li>
-            ))}
-          </ul>
+              </div>
+              <a
+                href={`/edit-property/${p.id}`}
+                className="text-sm px-4 py-1 border border-black rounded hover:bg-black hover:text-white transition"
+              >
+                Edit
+              </a>
+            </li>
+          ))}
+        </ul>
         )}
       </section>
 
