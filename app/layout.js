@@ -18,10 +18,13 @@ export default function RootLayout({ children }) {
           </div>
 
           {/* Center logo */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 font-serif font-bold text-lg">
+          <a
+            href="/"
+            className="absolute left-1/2 transform -translate-x-1/2 font-serif font-bold text-lg hover:underline"
+          >
             BuyerBridge
-          </div>
-
+          </a>
+          
           {/* Right auth buttons */}
           <div className="flex gap-4">
             <a href="/login" className="px-4 py-1 border border-black rounded-full hover:bg-black hover:text-white transition">

@@ -1,21 +1,21 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { useParams, useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
 
 export default function EditPropertyPage() {
-  const params = useParams()
-  const id = params.id
+  const { id } = useParams()
   const router = useRouter()
+
   const [property, setProperty] = useState(null)
-  const [title, setTitle] = useState('')
-  const [description, setDescription] = useState('')
-  const [price, setPrice] = useState('')
+  const [form, setForm] = useState({
+    title: '',
+    description: '',
+    price: ''
+  })
 
   useEffect(() => {
-    console.log('Editing property with ID:', id)
-
     const fetchProperty = async () => {
       const { data, error } = await supabase
         .from('properties')
@@ -23,80 +23,87 @@ export default function EditPropertyPage() {
         .eq('id', id)
         .single()
 
-      if (data) {
+      if (error) {
+        console.error('Error fetching property:', error.message)
+      } else {
         setProperty(data)
-        setTitle(data.title)
-        setDescription(data.description)
-        setPrice(data.price)
-      } else if (error) {
-        console.error('Failed to fetch property:', error.message)
+        setForm({
+          title: data.title || '',
+          description: data.description || '',
+          price: data.price || ''
+        })
       }
     }
 
     fetchProperty()
   }, [id])
 
-const handleUpdate = async (e) => {
-  e.preventDefault()
-
-  const propertyId = String(id)  // 👈 force it to be a string
-
-  console.log('Submitting update:', { propertyId, title, description, price })
-
-  // Quick check to confirm the record exists first
-const { data: exists } = await supabase
-  .from('properties')
-  .select('id')
-  .eq('id', propertyId)
-  .single()
-
-console.log('Matching record found:', exists)
-
-
-const { data, error } = await supabase
-  .from('properties')
-  .update({
-    title,
-    description,
-    price: Number(price)
-  })
-  .match({ id: propertyId })
-
-
-  if (error) {
-    console.error('Update failed:', error.message)
-  } else {
-    console.log('Update success:', data)
-    router.push('/my-properties')
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm(prev => ({ ...prev, [name]: value }))
   }
-}
 
+  const handleSubmit = async (e) => {
+    e.preventDefault()
 
-  if (!property) return <p>Loading...</p>
+    const { error } = await supabase
+      .from('properties')
+      .update({
+        title: form.title,
+        description: form.description,
+        price: parseFloat(form.price)
+      })
+      .eq('id', id)
+
+    if (error) {
+      console.error('Error updating property:', error.message)
+      alert('Update failed')
+    } else {
+      router.push('/my-dashboard')
+    }
+  }
+
+  if (!property) return <p className="p-6 text-center">Loading...</p>
 
   return (
-    <div style={{ padding: '2rem' }}>
-      <h1>Edit Property</h1>
-      <form onSubmit={handleUpdate}>
+    <div className="max-w-xl mx-auto p-6 text-black">
+      <h1 className="text-2xl font-bold mb-6 text-center">Edit Property</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          name="title"
+          value={form.title}
+          onChange={handleChange}
+          placeholder="Title"
+          className="w-full border p-2 rounded"
           required
-        /><br /><br />
+        />
         <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          name="description"
+          value={form.description}
+          onChange={handleChange}
+          placeholder="Description"
+          className="w-full border p-2 rounded"
+          rows={4}
           required
-        /><br /><br />
+        />
         <input
           type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          name="price"
+          value={form.price}
+          onChange={handleChange}
+          placeholder="Price"
+          className="w-full border p-2 rounded"
           required
-        /><br /><br />
-        <button type="submit">Update Property</button>
+        />
+        <button
+          type="submit"
+          className="w-full px-6 py-2 border border-black rounded hover:bg-black hover:text-white transition"
+        >
+          Update Property
+        </button>
       </form>
     </div>
   )
 }
+
