@@ -48,6 +48,7 @@ export default function AddPropertyPage() {
 
     const { error } = await supabase.from('properties').insert([
       {
+        user_id: user.id,
         title,
         description,
         price: parseFloat(price),
